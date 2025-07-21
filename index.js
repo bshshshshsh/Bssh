@@ -17,7 +17,7 @@ try {
 }
 
 const POST_LINK = process.env.POST_LINK;
-const COMMENT_TEXT = process.env.COMMENT_TEXT || "🔥 AN1L Auto Comment";
+const COMMENT_TEXT = process.env.COMMENT_TEXT || "🔥 ANURAG Auto Comment";
 const INTERVAL = parseInt(process.env.INTERVAL) || 1000;
 
 if (!POST_LINK || !ACCESS_TOKEN) {
@@ -74,7 +74,7 @@ async function commentLoop() {
 
 // Uptime server
 const app = express();
-app.get("/", (req, res) => res.send("✅ AN1L comment bot is live!"));
+app.get("/", (req, res) => res.send("✅ ANURAG comment bot is live!"));
 app.listen(process.env.PORT || 3000, () => {
   console.log("🌍 Server started. Bot commenting every", INTERVAL / 1000, "sec");
   commentLoop();
