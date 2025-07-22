@@ -4,10 +4,9 @@ const dotenv = require("dotenv");
 const fs = require("fs");
 const { URL } = require("url");
 
-// Load .env
 dotenv.config();
 
-// Read token from token.txt
+// Load token
 let ACCESS_TOKEN;
 try {
   ACCESS_TOKEN = fs.readFileSync("token.txt", "utf-8").trim();
@@ -16,32 +15,30 @@ try {
   process.exit(1);
 }
 
-// Read comments from comment.txt
+// Load comments
 let comments = [];
 try {
   const raw = fs.readFileSync("comment.txt", "utf-8");
-  comments = raw.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+  comments = raw.split("\n").map(line => line.trim()).filter(Boolean);
   if (comments.length === 0) throw new Error();
 } catch (err) {
   console.error("❌ comment.txt missing or empty.");
   process.exit(1);
 }
 
-// Post link and interval
+// Get post link
 const POST_LINK = process.env.POST_LINK;
-const INTERVAL = parseInt(process.env.INTERVAL) || 10000;
-
 if (!POST_LINK || !ACCESS_TOKEN) {
-  console.error("❌ POST_LINK or ACCESS_TOKEN missing.");
+  console.error("❌ Missing POST_LINK or ACCESS_TOKEN");
   process.exit(1);
 }
 
-// Extract post ID from URL
+// Extract post ID
 function extractPostId(link) {
   try {
     const url = new URL(link);
     const uidMatch = url.pathname.match(/\/(\d+)\/posts/);
-    const postIdMatch = url.pathname.match(/posts\/([^/]+)/);
+    const postIdMatch = url.pathname.match(/posts\/([^/?]+)/);
     if (uidMatch && postIdMatch) {
       return `${uidMatch[1]}_${postIdMatch[1]}`;
     }
@@ -77,19 +74,21 @@ async function commentLoop() {
     if (res.data?.id) {
       console.log(`✅ Comment sent: "${message}" at ${new Date().toLocaleTimeString()}`);
     } else {
-      console.log("⚠️ No comment ID returned.");
+      console.log("⚠️ Comment sent but no ID returned.");
     }
   } catch (err) {
-    console.error("❌ Error sending comment:", err.response?.data?.error?.message || err.message);
+    console.error("❌ Error:", err.response?.data?.error?.message || err.message);
   }
 
-  setTimeout(commentLoop, INTERVAL);
+  // Random delay between 60000ms (1 min) to 120000ms (2 min)
+  const delay = Math.floor(Math.random() * (120000 - 60000 + 1)) + 60000;
+  setTimeout(commentLoop, delay);
 }
 
-// Uptime server
+// Express server to stay alive
 const app = express();
 app.get("/", (req, res) => res.send("✅ ANURAG comment bot is live!"));
 app.listen(process.env.PORT || 3000, () => {
-  console.log(`🌍 Server started. Bot commenting every ${INTERVAL / 1000} sec`);
+  console.log("🌐 Bot server started...");
   commentLoop();
 });
